@@ -13,7 +13,7 @@ class Node():
         self.next = None   
         
 # returns the state of light_id
-def Get_light_state(light_id):
+def Get_light_state(light_id)->str | None:
     try:
         return opened_json[str(light_id)]['state']
     except KeyError as E: 
@@ -21,7 +21,7 @@ def Get_light_state(light_id):
  
     
 # switches the light on/off
-def Switch_light_state(light_id):
+def Switch_light_state(light_id)->None:
     switched_state = False
     # switching light states
 
@@ -39,28 +39,39 @@ def Switch_light_state(light_id):
     with open("json/light_state.json", "w") as f:
         json.dump(opened_json, f)
 
-
-def Check_light_group(light_id, next_light_id = None):
+# returns unsorted paths
+def Check_light_group(light_id = None, next_light_id = None)->dict | None:
     try:
-        groups = valid_paths[str(light_id)]
-    
-        if (groups is not None):
-            for key in groups:
-                print("Current light group:",groups[key])
-
-        if (next_light_id is not None):
-            next_groups = valid_paths[str(next_light_id)]
-            for key in next_groups:
-                print("Next light group:",next_groups[key])
-        else:
-            ...
-            
+        groups = valid_paths[str(light_id)]        
+        return groups
+         
     except KeyError:
         print("non existent groups")
 
 
-      
-  
+# returns sorted paths
+def Order_light_group(groups: dict, light_id) -> list | None:
+    if (groups is not None):
+        
+        # get unsorted groups | parse: dict -> list 
+        group_array = []
+        for group in groups: 
+            values = [light_id]
+            
+            for value in groups[group]:
+                values.append(value)
+            
+            group_array.append(values) #append values to groups array
+            
+        # sort the array    
+        i = 0 
+        for group in group_array:
+            group_array[i] = sorted(group)
+            
+            i+=1
+        return group_array # return list
+    else:
+        return None # if groups was not valid
 
 
 
@@ -87,6 +98,8 @@ def Parse_list(node: Node):
     while node is not None:
         state = Get_light_state(str(node.light_id))
         light_id = node.light_id
+        
+        # print (id : red or green)
         if(str(light_id) != 'None'):
             print(f"{light_id}:{state}")
 
@@ -96,10 +109,21 @@ def Parse_list(node: Node):
         else:
             next_light_id = None
             
-            
-        Check_light_group(light_id, next_light_id)
+        # validating valid routes
+        groups = Check_light_group(light_id, next_light_id)
+        sorted_groups = Order_light_group(groups, light_id)
         
+        # checking if valid routes are same as next id routes
+        next_groups = Check_light_group(next_light_id)
+        sorted_next_groups = Order_light_group(next_groups, next_light_id)    
         
+        if (sorted_groups and sorted_next_groups):
+            for group in sorted_groups:
+                for nextgroup in sorted_next_groups:
+                    print(group == nextgroup)
+                    print(group, nextgroup)
+                    
+    
         # toggling lights | groups
         if(state == "red"):
             Switch_light_state(light_id) # toggle on
@@ -130,6 +154,7 @@ def Parse_list(node: Node):
 head = Node()
 Node_insert(head, 3.1)
 Node_insert(head, 2.1)
+Node_insert(head, 3.1)
 
 
 Parse_list(head)

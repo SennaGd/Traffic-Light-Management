@@ -1,1 +1,12 @@
-{"T": {"state": "red", "time-toggled": 0, "enabled-time": 20}, "2.1": {"state": "red", "time-toggled": 0, "enabled-time": 4}, "3.1": {"state": "red", "time-toggled": 0, "enabled-time": 2}, "4.1": {"state": "red", "time-toggled": 0, "enabled-time": 30}, "6.1": {"state": "red", "time-toggled": 0, "enabled-time": 20}, "8.1": {"state": "red", "time-toggled": 0, "enabled-time": 35}, "21": {"state": "red", "time-toggled": 0, "enabled-time": 0}, "24": {"state": "red", "time-toggled": 0, "enabled-time": 0}, "32": {"state": "red", "time-toggled": 0, "enabled-time": 0}, "34": {"state": "red", "time-toggled": 0, "enabled-time": 0}}
+{
+  "T": { "state": "red", "time-toggled": 0, "enabled-time": 20 },
+  "2.1": { "state": "red", "time-toggled": 0, "enabled-time": 2 },
+  "3.1": { "state": "red", "time-toggled": 0, "enabled-time": 2 },
+  "4.1": { "state": "red", "time-toggled": 0, "enabled-time": 30 },
+  "6.1": { "state": "red", "time-toggled": 0, "enabled-time": 20 },
+  "8.1": { "state": "red", "time-toggled": 0, "enabled-time": 35 },
+  "21": { "state": "red", "time-toggled": 0, "enabled-time": 0 },
+  "24": { "state": "red", "time-toggled": 0, "enabled-time": 0 },
+  "32": { "state": "red", "time-toggled": 0, "enabled-time": 0 },
+  "34": { "state": "red", "time-toggled": 0, "enabled-time": 0 }
+}
