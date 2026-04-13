@@ -10,40 +10,48 @@ with open("trafficlightlist.json", "r") as file:
    
 
 class Node():
-    def __init__(self, lightId):
+    def __init__(self, lightId = None):
         self.lightId = lightId
         self.next = None
         
  
-head = Node(2.1) 
-node2 = Node(4.1)
-node3 = Node(6.1)
+head = Node() 
+node1 = Node(2.1)
+end_node = Node()
 
-head.next = node2
-node2.next = node3
+head.next = node1
+node1.next = end_node
 
-temp = head   
 
 def Get_light_state(light_id):
-    return opened_json[str(light_id)]['state']
+    try:
+        return opened_json[str(light_id)]['state']
+    except KeyError as E: 
+        return 
+    
+    
 
 
 def Switch_light_state(light_id):
+    switched_state = False
     # switching light states
-    if (Get_light_state(str(light_id)) == "red"):
+
+    if (Get_light_state(str(light_id)) == "red" and not switched_state):
         opened_json[str(light_id)]['state'] = "green"
-        
-    elif (Get_light_state(str(light_id)) == "green"):
+        print("Switched from red -> green")
+        switched_state = True
+    
+    elif (Get_light_state(str(light_id)) == "green" and not switched_state):
         opened_json[str(light_id)]['state'] = "red"
+        print("Switched from green -> red")
+        
+        switched_state = True
+        
     
-    
-    print(opened_json)
-    
-    
-    with open("new.json", "w") as f:
+    with open("trafficlightlist.json", "w") as f:
         json.dump(opened_json, f)
 
-
+temp = head   
 while temp.next is not None:
     # print(temp.lightId, end=" \n")
     
@@ -56,12 +64,9 @@ while temp.next is not None:
 def Parse_packet():
     with open("testpacket.json", "r") as file:
         packet = json.load(file)
-    print(packet["messages"][0]['type'])
-    print(packet["messages"][0]["message"]["id"])
+        print(packet["messages"][0]['type'])
+        print(packet["messages"][0]["message"]["id"])
 
-def Toggle_light():
-    for light_categories in opened_json:
-        print(light_categories)
     
     
 def Toggle_group():
@@ -69,41 +74,3 @@ def Toggle_group():
 
 
 
-
-def Check_toggleable():
-    #? checks if the path can be set to green
-    
-    selected_light = 4.1 # check all possible paths for 8.1
-    
-    #? all possible paths that 'selected_light' can take
-    light_paths = valid_paths[str(selected_light)]
-    print(light_paths)
-    paths = []
-    i = 0
-    for groups in light_paths:
-        for path in groups[str(i)]:
-            print(path)
-            paths.append(path)
-            
-        i+=1
-        
-        
-    print(paths)
-        
-        
-        
-    for light in opened_json:
-        if (light not in paths):
-            if (opened_json[light]['state'] == "green"):
-                print(light, ': green')
-                return False
-            else:
-                print(light, ': red') 
-                
-            
-    
-        
-Parse_packet()
-
-
-# Check_toggleable()
