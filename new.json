@@ -1,0 +1,12 @@
+{
+  "T": { "state": "red" },
+  "8.1": { "state": "green" },
+  "2.1": { "state": "green" },
+  "3.1": { "state": "red" },
+  "6.1": { "state": "red" },
+  "4.1": { "state": "green" },
+  "24": { "state": "red" },
+  "21": { "state": "red" },
+  "34": { "state": "red" },
+  "32": { "state": "red" }
+}

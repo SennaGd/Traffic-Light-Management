@@ -1,0 +1,10 @@
+{
+    "messages": [
+        {
+            "type": "vehicleWaiting",
+            "message": {
+                "id": "2.1"
+            }
+        }
+    ]
+}
