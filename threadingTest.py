@@ -32,10 +32,30 @@ def Switch_light_state(light_id)->None:
     with open("json/light_state.json", "w") as f:
         json.dump(opened_json, f)
 
+def light_countdown(light_id):
+    state = opened_json[str(light_id)]['state']
+    
+    if(state == "red"):
+        Switch_light_state(light_id) # toggle on
+        
+        # time variables
+        time_toggled = opened_json[str(light_id)]['time-toggled']
+        time_amount = opened_json[str(light_id)]["enabled-time"]
+        
+        # countdown | hold green for X seconds
+        time_left = int(time.time())
+        while(int(time.time()) != time_toggled+time_amount):
+            # if runs every tick | inside if runs ever second
+            if (time_left == time_toggled+time_amount - int(time.time())):
+                time_left = time_toggled+time_amount - int(time.time())
+            print(opened_json[str(light_id)]['state'])
+            # print(time_toggled+time_amount - int(time.time()))
+                
+        Switch_light_state(light_id) # toggle off
 
 def switch_light(group,index):
     print("e", group[index])
-    Switch_light_state(group[index])
+    light_countdown(group[index])
 
 
 group = [3.1, 4.1, 2.1]
