@@ -3,11 +3,10 @@ from structs.packets import *
 from structs.post_state import *
 from json_variables import *
 
-ip = '172.16.48'
-subIp = '58'
+ip = '192.168.178.117'
 port = '5501'
 
-url = "http://" + ip + '.' + subIp + ':' + port + '/post'
+url = "http://" + ip + ':' + port + '/post'
 
 def postToFrontEnd(url: str, gateClosing: bool):
 	try:
