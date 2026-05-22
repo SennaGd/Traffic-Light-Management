@@ -16,11 +16,7 @@ def resetLightStates():
 	with open('json/light_state.json', 'w') as file:
 		file.write(parsedStates)
 
-def removeAllPackets():
-	overWritePacketsList([])	
 
 def onStart():
-	resetLightStates()
-	removeAllPackets()
-
-onStart()
+	resetLightStates() # resets states to red
+	overWritePacketsList([]) # removes all packets
