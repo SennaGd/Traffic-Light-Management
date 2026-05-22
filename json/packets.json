@@ -1,12 +1,8 @@
 [
-  ["vehicleWaiting", "8.1"],
-  ["vehicleWaiting", "2.1"],
-  ["vehicleWaiting", "2.1"],
-  ["vehicleWaiting", "2.1"],
-  ["vehicleWaiting", "8.1"],
-  ["vehicleWaiting", "4.1"],
-  ["vehicleWaiting", "4.1"],
-  ["vehicleWaiting", "4.1"],
-  ["vehicleWaiting", "4.1"],
-  ["trainApproach", "train-1"]
+    [
+        "trainApproach",
+        "train-1",
+        "1779450999",
+        1779450987
+    ]
 ]

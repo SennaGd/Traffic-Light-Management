@@ -1,189 +1,130 @@
-# package imports
-import json
-import time
+from recieve_packets import * 
+from json import JSONDecodeError
+from doctest import debug
 
-# file imports
-from PriorityList import create_priority_list
-from classes import Node
+import uvicorn
+import contextlib
+import threading
 
+from send_packet import *
+from select_group import *
+from calculate_amount import *
+from toggle_light import * 
+from train_check import *
 
-with open("json/light_order.json", "r") as file:
-    valid_paths = json.load(file)
+class APIServer(uvicorn.Server):
+    def install_signal_handlers(self):
+        pass
 
-with open("json/light_state.json", "r") as file:
-    opened_json = json.load(file)
+    @contextlib.contextmanager
+    def run_in_thread(self):
+        thread = threading.Thread(target=self.run)
+        thread.start()
+        try:
+            while not self.started:
+                time.sleep(1e-3)
+            yield
+        except KeyboardInterrupt:
+            self.should_exit = True
+            thread.join()
 
+# responsible for parsing packetsList
+class LoopHandler():
+	def parseLights(self):	
+		"""Loop for making sure the traffic lights turn on/off in order"""
 
-# returns the state of light_id
-def Get_light_state(light_id) -> str | None:
-    try:
-        return opened_json[str(light_id)]['state']
-    except KeyError as E:
-        return
+		threads = list()	
+		greenState = False	
 
+		appendedId = False
+		selectedGroup = []
+		while True:
+			gateClosing = False		
+			trainApproach = False
+			try:
+				packetsList = updatePacketsList()
+			except JSONDecodeError as e:
+				print(e)
+				packetsList = [] # make sure packetsList is empty on read error
+			
+			# check for trainPacket
+			trainApproach = checkForTrain() 
+			if trainApproach:
+				timeBeforeTrain = calculateLightStop()	
+				# turn off all lights | turn only T light (group) on
+				if timeBeforeTrain < 6:
+					selectedGroup= getTrainGroup(appendedId)
+					gateClosing = True
+				else:
+					trainApproach = False
+					
+				if timeBeforeTrain < 0:
+					selectedGroup= getTrainGroup(appendedId)
+					gateClosing = False # gate should be closed
+				else:
+					trainApproach = False
+			else:
+				# if the time is not less than one minute keep normal loop going
+				trainApproach = False
+				
+			# only toggle whenever every light is red | packetsList cannot be []
+			if greenState == False and len(packetsList) != 0 and trainApproach == False:
+				lightArray = fetchVehicleAmount(packetsList)
 
-# switches the light on/off
-def Switch_light_state(light_id) -> None:
-    switched_state = False
-    # switching light states
+				currentPacket = packetsList[0]
+				currentId = currentPacket[1]
 
-    if (Get_light_state(str(light_id)) == "red" and not switched_state):
-        opened_json[str(light_id)]['state'] = "green"
-        opened_json[str(light_id)]['time-toggled'] = int(time.time())
-        switched_state = True
+				# finding groups for "id"	
+				groupList = findGroups(currentId)
+				selectedGroup, _ = sortGroup(lightArray, groupList, currentPacket)
+				timeDict = getTotalTime(selectedGroup, packetsList)
 
-    elif (Get_light_state(str(light_id)) == "green" and not switched_state):
-        opened_json[str(light_id)]['state'] = "red"
-        opened_json[str(light_id)]['time-toggled'] = 0
-        switched_state = True
+				# start green light state
+				for index in range(len(selectedGroup)):
+					x = threading.Thread(target=switchLight, args=(selectedGroup[index], ))
+					threads.append(x)
+					x.start()	
+				
+				# delete calculated amount	of packets
+				for key in timeDict:
+					deletePackets(key, timeDict[key][1], packetsList)
+				
+				postToFrontEnd(url, gateClosing)
+				greenState = True
+				
+			# if trainApproach is true enable the group
+			elif trainApproach == True and timeBeforeTrain < 0:
+				for index in range(len(selectedGroup)):
+					print(index)
+					x = threading.Thread(target=switchLight, args=(selectedGroup[index],))
+					threads.append(x)
+					x.start()	
+				greenState = True
+			try:
+				timeBeforeTrain = calculateLightStop()	
+				if timeBeforeTrain < -20:
+					deletePackets("train-1", 1, packetsList)
 
-    with open("json/light_state.json", "w") as f:
-        json.dump(opened_json, f)
+			except UnboundLocalError:
+				pass	
 
-# returns unsorted paths
+			# check if thread threads are still running | delete if not
+			index = 0
+			for thread in threads:
+				if thread.is_alive() == False:
+					del(threads[index])
+					postToFrontEnd(url, gateClosing)
+				index += 1
+			# checks if threads list is empty | if empty greenState is False 
+			if len(threads) == 0:
+				greenState = False
+			print('h')
 
+if __name__ == '__main__':
 
-def Check_light_group(light_id=None, next_light_id=None) -> dict | None:
-    try:
-        groups = valid_paths[light_id]
-        return groups
+	config = uvicorn.Config("recieve_packets:app", host="0.0.0.0", port=8000, log_level="debug")
 
-    except KeyError:
-        print("non existent groups")
+	server = APIServer(config=config)
 
-
-# returns sorted paths
-def Order_light_group(groups: dict, light_id) -> list | None:
-    if (groups is not None):
-
-        # get unsorted groups | parse: dict -> list
-        group_array = []
-        for group in groups:
-            values = [light_id]
-
-            for value in groups[group]:
-                values.append(value)
-
-            group_array.append(values)  # append values to groups array
-
-        # sort the array
-        i = 0
-        for group in group_array:
-            group_array[i] = sorted(group)
-
-            i += 1
-        return group_array  # return list
-    else:
-        return None  # if groups was not valid
-
-
-# insert nodes
-def Node_insert(head, x):
-    newNode = Node(x)
-
-    if (head is None):
-        return newNode
-
-    temp = head
-    while temp.next is not None:
-        temp = temp.next
-
-    temp.next = newNode
-
-    return head
-
-# fetches valid paths | groups
-
-
-def Fetch_groups(light_id: str) -> dict | None:
-    try:
-        return valid_paths[str(light_id)]
-    except KeyError:
-        print("valid path is nonexistent")
-        return
-
-
-def Parse_groups(groups_dict: dict) -> list | None:
-    if (not groups_dict):
-        return None
-
-    group: list = []
-    for key in groups_dict:
-        group += [groups_dict[key]]
-
-    return group
-
-
-# checks if 
-def Check_compatible_group(group_list: list, light_id) -> list:
-    node = head
-    while node is not None:
-        if (str(node.light_id) == light_id):
-            current_node = node
-            break
-        node = node.next
-
-    node = current_node  # current node
-
-    # checking if next nodes are equal to current node's group's
-    while node is not None:
-        # prevent nonetype
-        if (group_list is None):
-            break
-        # parse all groups inside
-        # fetch selected group based upon recent vehicles
-        for group in group_list:
-            for value in group:
-                if (node.light_id == value):
-                    return group
-
-        node = node.next
-
-
-# responsible for adding the light_id if it is not inside the selected_group
-def parse_selected_group(light_id, selected_group: list | None) -> list:
-    if (selected_group is None):
-        # toggle only 1 light
-        return [light_id]
-    else:
-        for value in selected_group:
-            if (light_id == value):
-                inside_group = True
-            else:
-                inside_group = False
-
-        if (not inside_group):
-            selected_group.append(light_id)
-
-        return selected_group
-
-
-# traverses the nodes
-def Traverse_nodes(head: Node) -> None:
-    node = head
-    index = 0
-    while node is not None:
-        print("Node index:", index, "Node Id:", node.light_id)
-        light_id = str(node.light_id)
-
-        groups = Fetch_groups(light_id)
-        group_list = Parse_groups(groups)
-
-        # parse next nodes seperate | check if there's reoccuring node values in group
-        selected_group = Check_compatible_group(group_list, light_id)
-        selected_group = parse_selected_group(node.light_id, selected_group)
-
-        # toggling the light group | running simultaniously
-        print("group",selected_group)
-        index += 1
-        node = node.next  # next node
-
-
-head = Node()
-priorityList = create_priority_list("json/packets.json", head)
-for light in priorityList:
-    Node_insert(head, light)
-
-
-Traverse_nodes(head)
-# Traverse list of packets
+	with server.run_in_thread():
+		LoopHandler().parseLights() 
