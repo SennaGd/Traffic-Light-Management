@@ -40,7 +40,7 @@ def calculateLightStop():
 	print(round(trainApproach - currentTime))
 	return round(trainApproach - currentTime)
 
-def getTrainGroup(appendedId: bool):
+def getTrainGroup():
 	TlightStates = fetchLightStates()
 	for light in TlightStates:
 		if TlightStates[light]['state'] == "green":
@@ -49,10 +49,37 @@ def getTrainGroup(appendedId: bool):
 	for key in selectedGroup:
 		selectedGroup = selectedGroup[key] 
 	
-	# append only once
-	if appendedId == False:
-		selectedGroup.append("train-1")
-		
-		
 	return selectedGroup
+
+
+def setTrainState(state: str):
+	lightStates = fetchLightStates()
+
+	for light in lightStates:
+		if light == "train-1":
+			print("overwriting train state...")
+			
+			lightStates[light]['state'] = state
+	jsonStates = json.dumps(lightStates, indent=4)	
+	with open("json/light_state.json", 'w') as file:
+		file.write(jsonStates)		
+
+def getTrainState():
+	lightStates = fetchLightStates()
+	if lightStates != None:
+		return lightStates['train-1']['state']
+
+
+def setLightState(state: str, id):
+	lightStates = fetchLightStates()
+
+	for light in lightStates:
+		if light == str(id):
+			print(f"overwriting {id} state...")
+			
+			lightStates[light]['state'] = state
+	jsonStates = json.dumps(lightStates, indent=4)	
+	with open("json/light_state.json", 'w') as file:
+		file.write(jsonStates)		
+
 

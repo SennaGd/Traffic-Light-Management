@@ -6,12 +6,14 @@ def resetLightStates():
 		lightStates = json.load(file)
 	
 	for light in lightStates:
-		if lightStates[light]['state'] == "green":
-			lightStates[light]['state'] = "red"
+		if light != "train-1":
+			if lightStates[light]['state'] == "green":
+				lightStates[light]['state'] = "red"
 
-		if lightStates[light]['time-toggled'] != 0:
-			lightStates[light]['time-toggled'] = 0
-
+			if lightStates[light]['time-toggled'] != 0:
+				lightStates[light]['time-toggled'] = 0
+		else:
+			lightStates[light]['state'] = "open"
 	parsedStates = json.dumps(lightStates, indent=4)	
 	with open('json/light_state.json', 'w') as file:
 		file.write(parsedStates)

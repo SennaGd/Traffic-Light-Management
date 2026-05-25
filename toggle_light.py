@@ -13,20 +13,20 @@ def getLightState(lightId) -> str | None:
 
 # switches the light on/off
 def switchLightState(lightId) -> None:
-    switched_state = False
-    # switching light states
+	switched_state = False
+# switching light states
+	if lightId != "train-1": # only lights
+		if (getLightState(str(lightId)) == "red" and not switched_state):
+			lightStates[str(lightId)]['state'] = "green"
+			lightStates[str(lightId)]['time-toggled'] = int(time.time())
+			switched_state = True
 
-    if (getLightState(str(lightId)) == "red" and not switched_state):
-        lightStates[str(lightId)]['state'] = "green"
-        lightStates[str(lightId)]['time-toggled'] = int(time.time())
-        switched_state = True
-
-    elif (getLightState(str(lightId)) == "green" and not switched_state):
-        lightStates[str(lightId)]['state'] = "red"
-        lightStates[str(lightId)]['time-toggled'] = 0
-        switched_state = True
-    with open("json/light_state.json", "w") as f:
-        json.dump(lightStates, f)	
+		elif (getLightState(str(lightId)) == "green" and not switched_state):
+			lightStates[str(lightId)]['state'] = "red"
+			lightStates[str(lightId)]['time-toggled'] = 0
+			switched_state = True
+	with open("json/light_state.json", "w") as f:
+		json.dump(lightStates, f)	
 
 
 def switchLight(lightId):
@@ -49,3 +49,12 @@ def switchLight(lightId):
 		
 		switchLightState(lightId)  # toggle off
 		print(lightId, lightStates[str(lightId)]['state'])
+
+# switches all lights to red
+def switchOffLights():
+	lightStates = fetchLightStates()
+	if lightStates != None:
+		for light in lightStates:
+			if light != "train-1" and getLightState(light) == 'green':
+				switchLight(light)
+

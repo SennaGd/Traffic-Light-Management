@@ -37,18 +37,16 @@ timeDict = getTotalTime(selectedGroup, packetsList)
 
 def deletePackets(id: str, amount, packetsList):
 	"""Removes x amount of packets from packetslist"""
-	print("DELETEING", id, amount)
+	print('deleting', id)
 	deleted = 0
 	index = 0
 	for _, packetId, _, _ in packetsList:
 		if packetId == id:
-			print("PACKETID == ID")
 			del(packetsList[index])
 			deleted += 1
 
 		if deleted == amount:
 			overWritePacketsList(packetsList)	
-			print('OVERWRITTEN')
 			return True
 		index += 1
 

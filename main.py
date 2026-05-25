@@ -5,12 +5,14 @@ from doctest import debug
 import uvicorn
 import contextlib
 import threading
+import time
 
 from send_packet import *
 from select_group import *
 from calculate_amount import *
 from toggle_light import * 
 from train_check import *
+from reset_states import onStart, resetLightStates
 
 class APIServer(uvicorn.Server):
     def install_signal_handlers(self):
@@ -35,49 +37,107 @@ class LoopHandler():
 
 		threads = list()	
 		greenState = False	
-
-		appendedId = False
+		trainState = False		
 		selectedGroup = []
+
 		while True:
 			gateClosing = False		
-			trainApproach = False
 			try:
 				packetsList = updatePacketsList()
-			except JSONDecodeError as e:
-				print(e)
-				packetsList = [] # make sure packetsList is empty on read error
-			
+			except json.JSONDecodeError:
+				continue # run loop again
+
 			# check for trainPacket
-			trainApproach = checkForTrain() 
-			if trainApproach:
-				timeBeforeTrain = calculateLightStop()	
-				# turn off all lights | turn only T light (group) on
-				if timeBeforeTrain < 6:
-					selectedGroup= getTrainGroup(appendedId)
-					gateClosing = True
-				else:
-					trainApproach = False
+			fetchedTrainPacket = False
+			trainTimeApproach = 10000000
+			closing, closed = False, False
+			trainSleeping = False
+			currentTime = time.time()
+			
+			# fetched train packet
+			for packet in packetsList:
+				if packet[1] == "train-1":
+					trainTimeApproach = packet[2]
+					fetchedTrainPacket = True
+					break
+
+			timeBeforeTrain = float(trainTimeApproach)-currentTime
+
+			# checks for time difference from current time
+			# closing state T-10
+			if timeBeforeTrain < 20 and fetchedTrainPacket:
+				try:
+					if closing and closed == False:
+						switchOffLights() # switch lights off because closing
+						setTrainState("closing")
+				except json.JSONDecodeError:
+					continue
+				closing = True
+			
+			# fixed time sleep toggling the train group
+			# closed state T-0
+			if timeBeforeTrain < 10 and fetchedTrainPacket:
+				closed = True
+				selectedGroup = getTrainGroup()	
 					
-				if timeBeforeTrain < 0:
-					selectedGroup= getTrainGroup(appendedId)
-					gateClosing = False # gate should be closed
-				else:
-					trainApproach = False
-			else:
-				# if the time is not less than one minute keep normal loop going
-				trainApproach = False
-				
+				# set light on green
+				setTrainState("closed")
+				deletePackets('train-1', 1, packetsList)
+				for lightId in selectedGroup:
+					setLightState('green', lightId)
+
+
+
+				postToFrontEnd(url, gateClosing)
+				print('sleeping')				
+				time.sleep(20)
+				print('done sleeping')
+				for lightId in selectedGroup:
+					setLightState('red', lightId)
+
+				setTrainState("open") # open after 20 seconds	
+				postToFrontEnd(url, gateClosing)
+
+				continue # run loop again
+
+			# make sure only one switch
+						
+			# try to fetch states
+			try:
+				with open('json/light_state.json', 'r') as file:
+					lightStates = json.load(file)
+			except json.JSONDecodeError:
+				continue
+
+			if lightStates != None:
+				trainState = lightStates['train-1']['state']
+
+
 			# only toggle whenever every light is red | packetsList cannot be []
-			if greenState == False and len(packetsList) != 0 and trainApproach == False:
+			if greenState == False and len(packetsList) != 0 and trainState == "open" and trainSleeping == False:
 				lightArray = fetchVehicleAmount(packetsList)
 
 				currentPacket = packetsList[0]
 				currentId = currentPacket[1]
-
+				if currentId == 'train-1':	
+					try:
+						currentPacket = packetsList[1]
+					except IndexError:
+						print('indexError')
+						continue
+					
 				# finding groups for "id"	
 				groupList = findGroups(currentId)
 				selectedGroup, _ = sortGroup(lightArray, groupList, currentPacket)
+
 				timeDict = getTotalTime(selectedGroup, packetsList)
+				
+				index = 0
+				for id in selectedGroup:
+					if id == "train-1":
+						del(selectedGroup[index])	
+
+					index += 1
 
 				# start green light state
 				for index in range(len(selectedGroup)):
@@ -86,27 +146,20 @@ class LoopHandler():
 					x.start()	
 				
 				# delete calculated amount	of packets
+				deletedTimeDict = False
 				for key in timeDict:
-					deletePackets(key, timeDict[key][1], packetsList)
-				
+					if key == "train-1":
+						deletedTimeDict = True	
+
+					if deletedTimeDict == False:
+						deletePackets(key, timeDict[key][1], packetsList)
+
+				# TODO: REMOVE COMMENTED POST	
 				postToFrontEnd(url, gateClosing)
 				greenState = True
-				
-			# if trainApproach is true enable the group
-			elif trainApproach == True and timeBeforeTrain < 0:
-				for index in range(len(selectedGroup)):
-					print(index)
-					x = threading.Thread(target=switchLight, args=(selectedGroup[index],))
-					threads.append(x)
-					x.start()	
-				greenState = True
-			try:
-				timeBeforeTrain = calculateLightStop()	
-				if timeBeforeTrain < -20:
-					deletePackets("train-1", 1, packetsList)
 
-			except UnboundLocalError:
-				pass	
+
+		    # when the gate is closing: pause all gates for minimum of 10 seconds
 
 			# check if thread threads are still running | delete if not
 			index = 0
@@ -118,10 +171,10 @@ class LoopHandler():
 			# checks if threads list is empty | if empty greenState is False 
 			if len(threads) == 0:
 				greenState = False
-			print('h')
 
 if __name__ == '__main__':
-
+	onStart()
+	print(time.time())
 	config = uvicorn.Config("recieve_packets:app", host="0.0.0.0", port=8000, log_level="debug")
 
 	server = APIServer(config=config)

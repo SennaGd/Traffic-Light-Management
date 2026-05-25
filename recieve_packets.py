@@ -55,13 +55,5 @@ async def fetchStates():
 		messages.messages.append(light_object) # append the state :P
 	print(messages)
 
-	from datetime import datetime
 
-# 1. The exact format string for your example:
-	date_format = "%Y-%m-%dT%H:%M:%SZ"
-
-# 2. How to format the current time right now:
-	current_time_str = datetime.now().strftime(date_format)
-	print(current_time_str)	
-	messages.timestamp = current_time_str
 	return messages  
