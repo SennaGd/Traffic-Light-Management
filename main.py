@@ -51,12 +51,15 @@ class LoopHandler():
 				packetsList = updatePacketsList()
 			except json.JSONDecodeError:
 				continue # run loop again
+			
+			if len(packetsList) == 0:
+				continue
 
 			# check for trainPacket
 			fetchedTrainPacket = False
 			trainTimeApproach = 10000000
 			closing, closed = False, False
-			trainSleeping = False
+			trainPath = False
 			currentTime = time.time()
 			
 			# fetched train packet
@@ -71,13 +74,18 @@ class LoopHandler():
 			# TRAIN
 			# -  checks for time difference from current time
 			# -  closing state T-10
-			if timeBeforeTrain < 20 and fetchedTrainPacket:
+
+
+			if timeBeforeTrain < 20 and fetchedTrainPacket and trainPath == False:
 				try:
 					if closing and closed == False:
+						greenState = False
+						threads = []
 						switchOffLights() # switch lights off because closing
 						setTrainState("closing")
 				except json.JSONDecodeError:
-					continue
+					pass
+
 				closing = True
 			
 			# -  fixed time sleep toggling the train group
@@ -87,6 +95,10 @@ class LoopHandler():
 				selectedGroup = getTrainGroup()	
 					
 				# set light on green | gate: closed
+				greenState = False
+				trainPath = True
+				resetLightStates()
+
 				setTrainState("closed")
 				deletePackets('train-1', 1, packetsList)
 						
@@ -117,10 +129,9 @@ class LoopHandler():
 			
 			trainState = lightStates['train-1']['state']
 
-
 			# VEHICLES
 			# -  only toggle whenever every light is red | packetsList cannot be []
-			if greenState == False and len(packetsList) != 0 and trainState == "open" and trainSleeping == False:
+			if greenState == False and trainState == "open" and len(threads) == 0 and trainPath == False:
 				lightArray = fetchVehicleAmount(packetsList)
 
 				currentPacket = packetsList[0]
@@ -131,7 +142,7 @@ class LoopHandler():
 					try:
 						currentPacket = packetsList[1]
 					except IndexError:
-						print('indexError')
+						clear()
 						continue
 					
 				# finding groups for "id"	
@@ -188,7 +199,6 @@ class LoopHandler():
 				for t in threads:
 					t.start()
 
-				postToFrontEnd(url, gateClosing)
 				greenState = True
 
 			# RUNNING VEHICLE LIGHTS
@@ -197,14 +207,14 @@ class LoopHandler():
 			for thread in threads:
 				if thread.is_alive() == False:
 					del(threads[index])
-					postToFrontEnd(url, gateClosing)
 				index += 1
 			
-
-			print(len(threads))
+			clear()
+			print(len(threads), greenState, timeBeforeTrain)
+			print()
 			# checks if threads list is empty | if empty greenState is False 
-			if len(threads) == 0:
-				time.sleep(3)
+			if len(threads) == 0 and greenState == True and trainPath == False:
+				resetLightStates()
 				greenState = False
 
 if __name__ == '__main__':
@@ -216,4 +226,5 @@ if __name__ == '__main__':
 	server = APIServer(config=config)
 
 	with server.run_in_thread():
+		clear()
 		LoopHandler().parseLights() 

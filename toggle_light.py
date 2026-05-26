@@ -1,5 +1,5 @@
 from json_variables import *
-
+from send_packet import postToFrontEnd, url 
 import time
 
 lightStates = fetchLightStates()
@@ -35,7 +35,7 @@ def switchLight(lightId):
 
 	if (state == "red"):
 		switchLightState(lightId)  # toggle on
-
+		postToFrontEnd(url, False)
 		# time variables
 		timeToggled = lightStates[str(lightId)]['time-toggled']
 		timeAmount = lightStates[str(lightId)]["enabled-time"]
@@ -48,6 +48,7 @@ def switchLight(lightId):
 				timeLeft = timeToggled+timeAmount - int(time.time())
 		
 		switchLightState(lightId)  # toggle off
+		postToFrontEnd(url, False)
 		print(lightId, lightStates[str(lightId)]['state'])
 
 # switches all lights to red
