@@ -2,11 +2,11 @@ import requests
 from structs.packets import *
 from structs.post_state import *
 from json_variables import *
+  
+ip = '172.16.48.244'
+port = '5001'
 
-ip = '192.168.178.117'
-port = '5501'
-
-url = "http://" + ip + ':' + port + '/post'
+url = "http://" + ip + ':' + port + '/receive'
 
 def postToFrontEnd(url: str, gateClosing: bool):
 	try:
@@ -15,7 +15,6 @@ def postToFrontEnd(url: str, gateClosing: bool):
 		payload = {
 				"messages": []
 		}
-		
 		
 		for light in lightStates:
 			if light != "train-1":
@@ -34,10 +33,11 @@ def postToFrontEnd(url: str, gateClosing: bool):
 				"message": {"id": str(light), "state":"closed"}})
 				# remove packet and 	
 
-
+		print('posting')
 		x = requests.post(url, json=payload)
-		print('send to frontend!', x.status_code )
+		print(x.status_code)
 	except:
+		print('postFailed')
 		pass
 
 

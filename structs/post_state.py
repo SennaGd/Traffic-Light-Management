@@ -7,7 +7,7 @@ class PMessage(BaseModel):
 	state: str = "red" # default state: red
 	
 class PostState(BaseModel):
-    type: str = Field(default="TrafficLightState")
+    type: str = Field(default="trafficLightState")
     message: PMessage
 
 # all packets inside messages

@@ -1,1 +1,52 @@
-{"train-1": {"state": "closed", "time-toggled": 0, "enabled-time": 20}, "2.1": {"state": "green", "time-toggled": 1779715848, "enabled-time": 10}, "3.1": {"state": "red", "time-toggled": 0, "enabled-time": 5}, "4.1": {"state": "green", "time-toggled": 1779715848, "enabled-time": 15}, "6.1": {"state": "red", "time-toggled": 0, "enabled-time": 20}, "8.1": {"state": "red", "time-toggled": 0, "enabled-time": 35}, "21": {"state": "red", "time-toggled": 0, "enabled-time": 0}, "24": {"state": "red", "time-toggled": 0, "enabled-time": 15}, "32": {"state": "red", "time-toggled": 0, "enabled-time": 0}, "34": {"state": "red", "time-toggled": 0, "enabled-time": 0}}
+{
+    "train-1": {
+        "state": "closed",
+        "time-toggled": 0,
+        "enabled-time": 20
+    },
+    "2.1": {
+        "state": "red",
+        "time-toggled": 0,
+        "enabled-time": 10
+    },
+    "3.1": {
+        "state": "green",
+        "time-toggled": 0,
+        "enabled-time": 5
+    },
+    "4.1": {
+        "state": "green",
+        "time-toggled": 0,
+        "enabled-time": 15
+    },
+    "6.1": {
+        "state": "red",
+        "time-toggled": 0,
+        "enabled-time": 20
+    },
+    "8.1": {
+        "state": "red",
+        "time-toggled": 0,
+        "enabled-time": 35
+    },
+    "21": {
+        "state": "red",
+        "time-toggled": 0,
+        "enabled-time": 0
+    },
+    "24": {
+        "state": "red",
+        "time-toggled": 0,
+        "enabled-time": 15
+    },
+    "32": {
+        "state": "red",
+        "time-toggled": 0,
+        "enabled-time": 0
+    },
+    "34": {
+        "state": "red",
+        "time-toggled": 0,
+        "enabled-time": 0
+    }
+}
