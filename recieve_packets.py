@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import time
 from structs.get_state import *
 from structs.packets import Str_Request 
 from structs.post_state import Post_Str_Request
@@ -27,24 +28,22 @@ async def recieve(requests: Str_Request):
 	for packet in messages:
 		print("retrieved:", packet)
 		insertIntoPacketsList(packet)
-	return "hlelow" 
+	return "Post received {back-end}"
+
 
 @app.get("/state")
 async def fetchStates():
 	lightStates = fetchLightStates()
 	messages = Messages_List(messages=[], timestamp="")
 
-
-	for light in lightStates:
-
-		# traffic lights
-
 		
+	for light in lightStates:
+		# traffic lights
 		if light != "train-1":
 			lightID = light
 
 			light_object = Get_Light_Message(
-					message=Get_Message_Contents(id=str(lightID), state='green'), 
+					message=Get_Message_Contents(id=str(lightID), state=lightStates[light]['state']), 
 					type='trafficLightState', lightId=str(lightID), id=str(lightID)) 
 				
 		elif light == "train-1":
@@ -53,7 +52,6 @@ async def fetchStates():
 					type='crossingGate') 
 				
 		messages.messages.append(light_object) # append the state :P
-	print(messages)
 
-
+	time.sleep(1)
 	return messages  

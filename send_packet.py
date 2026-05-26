@@ -3,10 +3,10 @@ from structs.packets import *
 from structs.post_state import *
 from json_variables import *
   
-ip = '172.16.48.244'
-port = '5001'
+ip = '172.16.48.223'
+port = '5501'
 
-url = "http://" + ip + ':' + port + '/receive'
+url = "http://" + ip + ':' + port + '/post'
 
 def postToFrontEnd(url: str, gateClosing: bool):
 	try:
@@ -33,11 +33,8 @@ def postToFrontEnd(url: str, gateClosing: bool):
 				"message": {"id": str(light), "state":"closed"}})
 				# remove packet and 	
 
-		print('posting')
 		x = requests.post(url, json=payload)
-		print(x.status_code)
 	except:
-		print('postFailed')
 		pass
 
 

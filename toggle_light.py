@@ -26,15 +26,15 @@ def switchLightState(lightId) -> None:
 			lightStates[str(lightId)]['time-toggled'] = 0
 			switched_state = True
 	with open("json/light_state.json", "w") as f:
-		json.dump(lightStates, f)	
+		json.dump(lightStates, f, indent=4)	
 
 
 def switchLight(lightId):
+	print("toggling:", lightId)
 	state = lightStates[str(lightId)]['state']
 
 	if (state == "red"):
 		switchLightState(lightId)  # toggle on
-		print(lightId, lightStates[str(lightId)]['state'])
 
 		# time variables
 		timeToggled = lightStates[str(lightId)]['time-toggled']

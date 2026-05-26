@@ -24,12 +24,14 @@ def findGroups(currentId: str) -> list:
 # finds group based on priority
 def sortGroup(lightArray: dict, groupList: list, currentPacket):	
 	# Prioritising groups
+	print("groupList", groupList)
 	groupCount = {}
 	selectedGroup = 0 # this is an index
 	for group in groupList:
 		groupCount[group] = 0
 		for id in groupList[group]:
 			if lightArray[str(id)] > 0:
+				print(lightArray[str(id)])
 				groupCount[group] += lightArray[str(id)]
 
 	highest = 0

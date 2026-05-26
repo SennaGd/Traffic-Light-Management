@@ -37,7 +37,6 @@ timeDict = getTotalTime(selectedGroup, packetsList)
 
 def deletePackets(id: str, amount, packetsList):
 	"""Removes x amount of packets from packetslist"""
-	print('deleting', id)
 	deleted = 0
 	index = 0
 	for _, packetId, _, _ in packetsList:
@@ -51,4 +50,7 @@ def deletePackets(id: str, amount, packetsList):
 		index += 1
 
 
-
+def calculate_remove_amount(id: str, packetsList, lightStates):
+	for stateId in lightStates:
+		...
+	
