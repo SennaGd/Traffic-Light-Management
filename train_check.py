@@ -41,16 +41,20 @@ def calculateLightStop():
 	return round(trainApproach - currentTime)
 
 def getTrainGroup():
-	TlightStates = fetchLightStates()
-	for light in TlightStates:
-		if TlightStates[light]['state'] == "green":
-			switchLightState(light)
-	selectedGroup = findGroups("train-1")	
-	for key in selectedGroup:
-		selectedGroup = selectedGroup[key] 
-	
-	return selectedGroup
+	try: 
+		TlightStates = fetchLightStates()
 
+		for light in TlightStates:
+			if TlightStates[light]['state'] == "green":
+				switchLightState(light)
+		selectedGroup = findGroups("train-1")	
+		for key in selectedGroup:
+			selectedGroup = selectedGroup[key] 
+		
+		return selectedGroup
+
+	except json.JSONDecodeError:
+		return ['train-1', '4.1', '3.1', '34.1']
 
 def setTrainState(state: str):
 	lightStates = fetchLightStates()

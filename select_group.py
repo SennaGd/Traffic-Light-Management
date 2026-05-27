@@ -30,9 +30,12 @@ def sortGroup(lightArray: dict, groupList: list, currentPacket):
 	for group in groupList:
 		groupCount[group] = 0
 		for id in groupList[group]:
-			if lightArray[str(id)] > 0:
-				print(lightArray[str(id)])
-				groupCount[group] += lightArray[str(id)]
+			try:
+				if lightArray[str(id)] > 0:
+					print(lightArray[str(id)])
+					groupCount[group] += lightArray[str(id)]
+			except KeyError:
+				continue
 
 	highest = 0
 	for x in groupCount:
@@ -68,3 +71,5 @@ def sortGroup(lightArray: dict, groupList: list, currentPacket):
 
 	return FetchedSelectedGroup, highest 
 
+def checkActiveGroup(packetsList, activeGroup):
+	...	

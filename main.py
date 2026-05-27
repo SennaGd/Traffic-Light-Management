@@ -43,6 +43,8 @@ class LoopHandler():
 
 		greenState = False	
 		trainState = False		
+		
+		activeGroup = None
 
 		while True:
 
@@ -62,6 +64,8 @@ class LoopHandler():
 			trainPath = False
 			currentTime = time.time()
 			
+			
+
 			# fetched train packet
 			for packet in packetsList:
 				if packet[1] == "train-1":
@@ -72,11 +76,14 @@ class LoopHandler():
 			timeBeforeTrain = float(trainTimeApproach)-currentTime
 			
 			# TRAIN
+			# -  checks if 15 seconds have passed
+			if timeBeforeTrain < -15 and fetchedTrainPacket:
+				deletePackets('train-1', 1, packetsList)
+				continue 
+
 			# -  checks for time difference from current time
 			# -  closing state T-10
-
-
-			if timeBeforeTrain < 20 and fetchedTrainPacket and trainPath == False:
+			if timeBeforeTrain < 20 and fetchedTrainPacket:
 				try:
 					if closing and closed == False:
 						greenState = False
@@ -86,7 +93,10 @@ class LoopHandler():
 				except json.JSONDecodeError:
 					pass
 
+				greenState = False
+				resetLightStates()
 				closing = True
+				trainPath = True
 			
 			# -  fixed time sleep toggling the train group
 			# -  closed state T-0
@@ -95,12 +105,10 @@ class LoopHandler():
 				selectedGroup = getTrainGroup()	
 					
 				# set light on green | gate: closed
-				greenState = False
-				trainPath = True
 				resetLightStates()
 
+				greenState = False
 				setTrainState("closed")
-				deletePackets('train-1', 1, packetsList)
 						
 				for lightId in selectedGroup:
 					setLightState('green', lightId)
@@ -108,7 +116,7 @@ class LoopHandler():
 				postToFrontEnd(url, gateClosing)
 
 				print('sleeping')				
-				time.sleep(20)
+				time.sleep(10)
 				print('done sleeping')
 
 				for lightId in selectedGroup:
@@ -117,7 +125,6 @@ class LoopHandler():
 				setTrainState("open") # open after 20 seconds	
 				postToFrontEnd(url, gateClosing)
 
-				continue # run loop again
 				
 			# update lightStates	
 			# -  fetches lightStates | will exit loop iteration if decode error
@@ -142,21 +149,15 @@ class LoopHandler():
 					try:
 						currentPacket = packetsList[1]
 					except IndexError:
-						clear()
 						continue
 					
 				# finding groups for "id"	
 				groupList = findGroups(currentId)
-				selectedGroup, prevGroupIndex = sortGroup(lightArray, groupList, currentPacket)
+				selectedGroup, _ = sortGroup(lightArray, groupList, currentPacket)
 				
-				prevGroup = selectedGroup[len(selectedGroup)-1]
-				
-				 
-
-
 				# dictionary used for calculating amount to delete 
 				timeDict = getTotalTime(selectedGroup, packetsList)
-				
+
 				# make sure train-1 won't be toggled
 				index = 0
 				for id in selectedGroup:
@@ -191,7 +192,7 @@ class LoopHandler():
 				print(selectedGroup, len(threads))
 
 				# TOGGLING LIGHTS
-				# start green light state
+				# start green light state | only whenever greenstate: False
 				for index in range(len(selectedGroup)):
 					x = threading.Thread(target=switchLight, args=(selectedGroup[index], ))
 					threads.append(x)
@@ -209,11 +210,11 @@ class LoopHandler():
 					del(threads[index])
 				index += 1
 			
-			clear()
 			print(len(threads), greenState, timeBeforeTrain)
 			print()
 			# checks if threads list is empty | if empty greenState is False 
-			if len(threads) == 0 and greenState == True and trainPath == False:
+			if len(threads) == 0 and trainPath == False:
+				switchOffLights()
 				resetLightStates()
 				greenState = False
 
