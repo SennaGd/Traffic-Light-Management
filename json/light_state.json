@@ -15,8 +15,8 @@
         "enabled-time": 5
     },
     "4.1": {
-        "state": "green",
-        "time-toggled": 1779883385,
+        "state": "red",
+        "time-toggled": 0,
         "enabled-time": 15
     },
     "6.1": {
@@ -30,8 +30,8 @@
         "enabled-time": 15
     },
     "21.1": {
-        "state": "green",
-        "time-toggled": 1779883385,
+        "state": "red",
+        "time-toggled": 0,
         "enabled-time": 15
     },
     "24.1": {

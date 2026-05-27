@@ -214,6 +214,7 @@ class LoopHandler():
 			print()
 			# checks if threads list is empty | if empty greenState is False 
 			if len(threads) == 0 and trainPath == False:
+				time.sleep(2)
 				switchOffLights()
 				resetLightStates()
 				greenState = False

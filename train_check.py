@@ -57,17 +57,19 @@ def getTrainGroup():
 		return ['train-1', '4.1', '3.1', '34.1']
 
 def setTrainState(state: str):
-	lightStates = fetchLightStates()
+	try:
+		lightStates = fetchLightStates()
 
-	for light in lightStates:
-		if light == "train-1":
-			print("overwriting train state...")
-			
-			lightStates[light]['state'] = state
-	jsonStates = json.dumps(lightStates, indent=4)	
-	with open("json/light_state.json", 'w') as file:
-		file.write(jsonStates)		
-
+		for light in lightStates:
+			if light == "train-1":
+				print("overwriting train state...")
+				
+				lightStates[light]['state'] = state
+		jsonStates = json.dumps(lightStates, indent=4)	
+		with open("json/light_state.json", 'w') as file:
+			file.write(jsonStates)		
+	except json.JSONDecodeError:
+		return	
 def getTrainState():
 	lightStates = fetchLightStates()
 	if lightStates != None:
@@ -75,15 +77,17 @@ def getTrainState():
 
 
 def setLightState(state: str, id):
-	lightStates = fetchLightStates()
+	try:
+		lightStates = fetchLightStates()
 
-	for light in lightStates:
-		if light == str(id):
-			print(f"overwriting {id} state...")
-			
-			lightStates[light]['state'] = state
-	jsonStates = json.dumps(lightStates, indent=4)	
-	with open("json/light_state.json", 'w') as file:
-		file.write(jsonStates)		
-
+		for light in lightStates:
+			if light == str(id):
+				print(f"overwriting {id} state...")
+				
+				lightStates[light]['state'] = state
+		jsonStates = json.dumps(lightStates, indent=4)	
+		with open("json/light_state.json", 'w') as file:
+			file.write(jsonStates)		
+	except json.JSONDecodeError:
+		return
 
